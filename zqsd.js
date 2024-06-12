@@ -1,15 +1,13 @@
 import { Point, Angle, Vecteur, Raycaster } from "./geometry.js";
 import { CanvasInterface, CanvasRenderer } from "./canvas.js";
 window.oncontextmenu = (e) => e.preventDefault();
-const cSize = 100;
+const cSize = 64;
 
-const ball = new Point(8.5 * cSize, 5.5 * cSize);
-let angleDirection = new Angle(59);
+const ball = new Point(4.5 * cSize, 1.5 * cSize);
+let angleDirection = new Angle(-180);
 
-const ballSpeed = 350;
+const ballSpeed = (350 * cSize) / 100;
 const FOV = new Angle(75);
-const rayCount = 1200;
-const joystick = false;
 const displayGrid = true;
 const mapLayout = [
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
@@ -33,29 +31,16 @@ const mapLayout = [
 ];
 const mapColors = { 0: "#DDDDDD", 1: "#222222" };
 const caster = new Raycaster(mapLayout, cSize);
-const canvas = document.getElementById("top");
 
-//const renderer = new CanvasRenderer(canvas);
-const cv = new CanvasInterface(canvas); //renderer.interface;
+const mapCanvas = document.createElement("canvas");
+mapCanvas.width = 1000;
+mapCanvas.height = 1000;
+const cv = new CanvasInterface(mapCanvas);
 const cv3d = new CanvasInterface(document.getElementById("zqsd"));
 const key = [];
 let tLast = 0;
-const mouseOrigin = new Point(0, 0);
-let mouseVect = new Vecteur(0, 0);
-
-const calcPointer = (e) => (mouseVect = Vecteur.fromPoints(joystick ? mouseOrigin : ball, new Point(e.offsetX, e.offsetY)).normalize());
-canvas.addEventListener("pointerdown", (e) => {
-	mouseOrigin.set(e.offsetX, e.offsetY);
-	calcPointer(e);
-	//throtle
-	canvas.addEventListener("pointermove", calcPointer);
-});
-document.addEventListener("pointerup", (e) => {
-	canvas.removeEventListener("pointermove", calcPointer);
-	mouseVect = new Vecteur(0, 0);
-});
-document.addEventListener("keydown", (e) => (key[e.key] = true), false);
-document.addEventListener("keyup", (e) => (key[e.key] = false), false);
+document.addEventListener("keydown", (e) => (key[e.key.toLowerCase()] = true), false);
+document.addEventListener("keyup", (e) => (key[e.key.toLowerCase()] = false), false);
 
 const drawLayout = () => {
 	for (let i = 0; i < mapLayout.length; i++) {
@@ -72,29 +57,29 @@ const drawLayout = () => {
  * @param {Angle} angleDirection
  */
 const drawFOV = (angleDirection) => {
+	const stack = [];
 	const ang = new Angle(FOV.deg / (rayCount + -1));
 	const tpl = [];
 	const H = cv3d.height;
-	let last = { x: null, y: null };
-	let lr = { x: null, y: null };
+	const coef = cv3d.width / (2 * Math.tan(FOV.rad / 2));
+	let last;
 	for (let i = 0; i < rayCount; i++) {
 		const rayAngle = angleDirection.rad - FOV.rad / 2 + ang.rad * i;
 		const { intersect, collide } = caster.castRay(ball, rayAngle);
 		tpl.push(intersect);
 		const distance = ball.distance(intersect) * Math.cos(rayAngle - angleDirection.rad);
-		const tSize = (cSize / distance) * (cv3d.width / (2 * Math.tan(FOV.rad / 2)));
+		const tSize = (cSize / distance) * coef;
 
-		const r = { x: intersect.x % cSize, y: intersect.y % cSize };
-		const isEdge = collide.x !== last.x || collide.y !== last.y || (r.x !== lr.x && r.y !== lr.y); //  !!! affichage gauche -> droite, peut s'appliquer sur le pixel suivant
+		const isEdge = collide.x !== last?.collide.x || collide.y !== last?.collide.y || (intersect.x !== last?.intersect.x && intersect.y !== last?.intersect.y); //  !!! affichage gauche -> droite, peut s'appliquer sur le pixel suivant
 		const color = isEdge ? "#000000" : "#3c3c3c";
-		isEdge && cv.ball(intersect, { radius: 10, style: "#880000" });
-		last = collide;
-		lr = r;
+		isEdge && stack.push(() => cv.ball(intersect, { radius: 5, style: "#880000" }));
+		last = { intersect, collide };
 
 		cv3d.rect(i, H / 2 - tSize / 2, 1, tSize, { style: color });
 	}
 	cv.shape([ball, ...tpl], { style: "#0095DD" });
-	const intersect = caster.castRay(ball, angleDirection.rad);
+	stack.forEach((f) => f());
+	const { intersect } = caster.castRay(ball, angleDirection.rad);
 	cv.line(ball, intersect, { width: 1, style: "#660000" });
 };
 
@@ -117,11 +102,13 @@ const moveBall = (t = 0) => {
 
 const wall = new Image();
 wall.src = "wall.png";
+console.log(wall);
 
 const loop = (t = 0) => {
 	cv.clear();
 	cv3d.clear();
-	cv3d.rect(0, 0, cv3d.width, cv3d.height / 2, { style: "#0162ec" });
+	cv3d.rect(0, 0, cv3d.width, cv3d.height / 2, { style: "#1b237a" });
+	cv3d.rect(0, cv3d.height / 2, cv3d.width, cv3d.height / 2, { style: "#555555" });
 	const v = moveBall(t - tLast);
 	const cell = ball.transpose(1 / cSize);
 	fps.shift();
@@ -135,11 +122,15 @@ const loop = (t = 0) => {
 	cv.textGroup(["θ : " + Math.floor(angleDirection.deg), `Position: (${cell.x}, ${cell.y})`, `${Math.round(1 / (fps.reduce((accumulator, value) => accumulator + value) / 10 / 1000))}`], 20, 20, {
 		style: "#000000",
 	});
+	cv3d.element.getContext("2d").drawImage(cv.element, 0, 0, 150, 150);
 	// renderer.render();
 
 	tLast = t;
 	requestAnimationFrame(loop);
 };
 const fps = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
+cv3d.element.width = window.innerWidth;
+cv3d.element.height = window.innerHeight;
+const rayCount = cv3d.element.width;
+document.body.append(cv.element);
 requestAnimationFrame(loop);

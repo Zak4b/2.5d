@@ -6,21 +6,34 @@ let dimX = 10; //prompt("Dim x");
 let dimY = 10; //prompt("Dim y");
 dimX = parseInt(dimX);
 dimY = parseInt(dimY);
-const map = [];
+const mapColors = { 0: "#DDDDDD", 1: "#222222" };
+const mapLayout = [];
 for (let y = 0; y < dimY; y++) {
-	map[y] = [];
+	mapLayout[y] = [];
 	for (let x = 0; x < dimX; x++) {
-		map[y][x] = 0;
+		mapLayout[y][x] = 0;
 	}
 }
 const a = canvas.width / dimX;
 const b = canvas.height / dimY;
 const cSize = Math.min(a, b);
 
-canvas.addEventListener("mousedown", (e) => false);
-canvas.addEventListener("mouseup", (e) => false);
-canvas.addEventListener("mousedown", (e) => false);
-
+canvas.addEventListener("mousedown", (e) => {
+	mouseF(e);
+	canvas.addEventListener("mousemove", mouseF, { passive: true });
+});
+canvas.addEventListener("mouseup", (e) => {
+	canvas.removeEventListener("mousemove", mouseF);
+});
+/**
+ * @param {MouseEvent} e
+ */
+const mouseF = (e) => {
+	const relativeX = Math.floor(e.offsetX / cSize);
+	const relativeY = Math.floor(e.offsetY / cSize);
+	mapLayout[relativeY][relativeX] = 1;
+	loop();
+};
 const drawLayout = () => {
 	for (let i = 0; i < mapLayout.length; i++) {
 		const row = mapLayout[i];
@@ -33,8 +46,9 @@ const drawLayout = () => {
 	cv.options({ width: 3, style: "#555555" });
 };
 
-const loop = (t = 0) => {
+const loop = () => {
 	drawLayout();
 	cv.grid(cSize);
+	requestAnimationFrame(loop);
 };
-requestAnimationFrame(loop);
+loop();

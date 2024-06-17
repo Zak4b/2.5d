@@ -348,7 +348,8 @@ export class Raycaster {
 				nextHorizontalY += stepY;
 			}
 		}
-		return { intersect, collide: new Point(currentCellX, currentCellY) };
+		const collide = this.isWithinBounds(currentCellX, currentCellY) ? new Point(currentCellX, currentCellY) : null;
+		return { intersect, collide };
 	}
 
 	isWithinBounds(x, y) {

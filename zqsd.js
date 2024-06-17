@@ -57,28 +57,35 @@ const drawLayout = () => {
  * @param {Angle} angleDirection
  */
 const drawFOV = (angleDirection) => {
-	const stack = [];
 	const ang = new Angle(FOV.deg / (rayCount + -1));
-	const tpl = [];
-	const H = cv3d.height;
+	const segmentArray = [];
+	const halfHeight = cv3d.height / 2;
 	const coef = cv3d.width / (2 * Math.tan(FOV.rad / 2));
 	let last;
 	for (let i = 0; i < rayCount; i++) {
 		const rayAngle = angleDirection.rad - FOV.rad / 2 + ang.rad * i;
 		const { intersect, collide } = caster.castRay(ball, rayAngle);
-		tpl.push(intersect);
 		const distance = ball.distance(intersect) * Math.cos(rayAngle - angleDirection.rad);
-		const tSize = (cSize / distance) * coef;
+		segmentArray[i] = { coords: intersect, isEdge: false, distance: distance, size: (cSize / distance) * coef };
 
-		const isEdge = collide.x !== last?.collide.x || collide.y !== last?.collide.y || (intersect.x !== last?.intersect.x && intersect.y !== last?.intersect.y); //  !!! affichage gauche -> droite, peut s'appliquer sur le pixel suivant
-		const color = isEdge ? "#000000" : "#3c3c3c";
-		isEdge && stack.push(() => cv.ball(intersect, { radius: 5, style: "#880000" }));
+		if (i > 0 && (collide.x !== last?.collide.x || collide.y !== last?.collide.y || (intersect.x !== last?.intersect.x && intersect.y !== last?.intersect.y))) {
+			let k = distance > segmentArray[i - 1].distance ? i - 1 : i;
+			segmentArray[k].isEdge = true;
+		}
 		last = { intersect, collide };
-
-		cv3d.rect(i, H / 2 - tSize / 2, 1, tSize, { style: color });
 	}
-	cv.shape([ball, ...tpl], { style: "#0095DD" });
-	stack.forEach((f) => f());
+	cv.shape([ball, ...segmentArray.map((e) => e.coords)], { style: "#0095DD" });
+
+	for (let i = 0; i < segmentArray.length; i++) {
+		let color;
+		if (segmentArray[i].isEdge) {
+			cv.ball(segmentArray[i].coords, { radius: 3, style: "#880000" });
+			color = "#000000";
+		} else {
+			color = "#3c3c3c";
+		}
+		cv3d.rect(i, halfHeight - segmentArray[i].size / 2, 1, segmentArray[i].size, { style: color });
+	}
 	const { intersect } = caster.castRay(ball, angleDirection.rad);
 	cv.line(ball, intersect, { width: 1, style: "#660000" });
 };

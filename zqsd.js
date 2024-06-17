@@ -1,5 +1,6 @@
 import { Point, Angle, Vecteur, Raycaster } from "./geometry.js";
 import { CanvasInterface, CanvasRenderer } from "./canvas.js";
+import { fpsMeter } from "./fpsMeter.js";
 window.oncontextmenu = (e) => e.preventDefault();
 const cSize = 64;
 
@@ -31,8 +32,9 @@ const mapLayout = [
 ];
 const mapColors = { 0: "#DDDDDD", 1: "#222222" };
 const caster = new Raycaster(mapLayout, cSize);
+const fps = new fpsMeter();
 
-const cv = new CanvasInterface({ width: 1000, height: 1000 });
+const cv = new CanvasInterface({ width: 1000, height: 1000 }); // { width: mapLayout[0].length, height: mapLayout.length }
 const cv3d = new CanvasInterface(document.getElementById("zqsd"));
 const ctx3d = cv3d.element.getContext("2d");
 const key = [];
@@ -97,7 +99,6 @@ const loop = (t = 0) => {
 	cv3d.rect(0, cv3d.height / 2, cv3d.width, cv3d.height / 2, { style: "#555555" });
 	const v = moveBall(t - tLast);
 	const cell = ball.transpose(1 / cSize);
-	fps.shift();
 	fps.push(t - tLast);
 	if (!v.isNull) angleDirection = v.angle;
 
@@ -105,21 +106,15 @@ const loop = (t = 0) => {
 	if (displayGrid) cv.grid(cSize);
 	cv.ball(ball, { style: "#AA0000" });
 	drawFOV(angleDirection);
-	cv3d.textGroup(
-		["θ : " + Math.floor(angleDirection.deg), `Position: (${cell.x}, ${cell.y})`, `${Math.round(1 / (fps.reduce((accumulator, value) => accumulator + value) / 10 / 1000))}`],
-		cv3d.width - 150,
-		20,
-		{
-			style: "#FFFFFF",
-		}
-	);
+	cv3d.textGroup(["θ : " + Math.floor(angleDirection.deg), `Position: (${cell.x}, ${cell.y})`, `${fps.value}`], cv3d.width - 150, 20, {
+		style: "#FFFFFF",
+	});
 	ctx3d.drawImage(cv.element, 0, 0, 150, 150);
 	// renderer.render();
 
 	tLast = t;
 	requestAnimationFrame(loop);
 };
-const fps = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 cv3d.element.width = window.innerWidth;
 cv3d.element.height = window.innerHeight;
 const rayCount = cv3d.element.width;

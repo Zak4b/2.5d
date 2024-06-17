@@ -2,11 +2,19 @@ export class CanvasInterface {
 	#element;
 	#ctx;
 	/**
-	 * @param {HTMLCanvasElement} canvas
+	 * @param {HTMLCanvasElement | { width:number, height:number }} canvas
 	 */
 	constructor(canvas) {
-		this.#element = canvas;
-		this.#ctx = canvas.getContext("2d");
+		if (canvas instanceof HTMLCanvasElement) {
+			this.#element = canvas;
+		} else if (typeof canvas.width === "number" && typeof canvas.height === "number") {
+			this.#element = document.createElement("canvas");
+			this.#element.width = canvas.width;
+			this.#element.height = canvas.height;
+		} else {
+			throw new Error("Invalid canvas");
+		}
+		this.#ctx = this.#element.getContext("2d");
 	}
 
 	get element() {
@@ -29,9 +37,9 @@ export class CanvasInterface {
 	clear() {
 		this.#ctx.clearRect(0, 0, this.#element.width, this.#element.height);
 	}
-	grid = (cSize) => {
-		const nX = Math.floor(this.width / cSize);
-		const nY = Math.floor(this.height / cSize);
+	grid = (cSize, Xmax, Ymax) => {
+		const nX = Xmax ?? Math.floor(this.#element.width / cSize);
+		const nY = Ymax ?? Math.floor(this.#element.height / cSize);
 		for (let i = 0; i <= nX; i++) {
 			this.line({ x: i * cSize, y: 0 }, { x: i * cSize, y: this.height });
 		}

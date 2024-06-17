@@ -32,11 +32,9 @@ const mapLayout = [
 const mapColors = { 0: "#DDDDDD", 1: "#222222" };
 const caster = new Raycaster(mapLayout, cSize);
 
-const mapCanvas = document.createElement("canvas");
-mapCanvas.width = 1000;
-mapCanvas.height = 1000;
-const cv = new CanvasInterface(mapCanvas);
+const cv = new CanvasInterface({ width: 1000, height: 1000 });
 const cv3d = new CanvasInterface(document.getElementById("zqsd"));
+const ctx3d = cv3d.element.getContext("2d");
 const key = [];
 let tLast = 0;
 document.addEventListener("keydown", (e) => (key[e.key.toLowerCase()] = true), false);
@@ -57,37 +55,19 @@ const drawLayout = () => {
  * @param {Angle} angleDirection
  */
 const drawFOV = (angleDirection) => {
-	const ang = new Angle(FOV.deg / (rayCount + -1));
-	const segmentArray = [];
+	const ang = new Angle(FOV.rad / (rayCount + -1), true);
 	const halfHeight = cv3d.height / 2;
 	const coef = cv3d.width / (2 * Math.tan(FOV.rad / 2));
-	let last;
 	for (let i = 0; i < rayCount; i++) {
 		const rayAngle = angleDirection.rad - FOV.rad / 2 + ang.rad * i;
 		const { intersect, collide } = caster.castRay(ball, rayAngle);
 		const distance = ball.distance(intersect) * Math.cos(rayAngle - angleDirection.rad);
-		segmentArray[i] = { coords: intersect, isEdge: false, distance: distance, size: (cSize / distance) * coef };
+		const segmentSize = (cSize / distance) * coef;
+		collide ? mapLayout[collide.y][collide.x] : null;
 
-		if (i > 0 && (collide.x !== last?.collide.x || collide.y !== last?.collide.y || (intersect.x !== last?.intersect.x && intersect.y !== last?.intersect.y))) {
-			let k = distance > segmentArray[i - 1].distance ? i - 1 : i;
-			segmentArray[k].isEdge = true;
-		}
-		last = { intersect, collide };
+		const sx = Math.floor((((intersect.x % cSize) + (intersect.y % cSize)) * wall.width) / cSize);
+		ctx3d.drawImage(wall, sx, 0, 1, wall.height, i, halfHeight - segmentSize / 2, 1, segmentSize);
 	}
-	cv.shape([ball, ...segmentArray.map((e) => e.coords)], { style: "#0095DD" });
-
-	for (let i = 0; i < segmentArray.length; i++) {
-		let color;
-		if (segmentArray[i].isEdge) {
-			cv.ball(segmentArray[i].coords, { radius: 3, style: "#880000" });
-			color = "#000000";
-		} else {
-			color = "#3c3c3c";
-		}
-		cv3d.rect(i, halfHeight - segmentArray[i].size / 2, 1, segmentArray[i].size, { style: color });
-	}
-	const { intersect } = caster.castRay(ball, angleDirection.rad);
-	cv.line(ball, intersect, { width: 1, style: "#660000" });
 };
 
 const moveBall = (t = 0) => {
@@ -109,7 +89,6 @@ const moveBall = (t = 0) => {
 
 const wall = new Image();
 wall.src = "wall.png";
-console.log(wall);
 
 const loop = (t = 0) => {
 	cv.clear();
@@ -124,12 +103,17 @@ const loop = (t = 0) => {
 
 	drawLayout();
 	if (displayGrid) cv.grid(cSize);
-	cv.ball(ball);
+	cv.ball(ball, { style: "#AA0000" });
 	drawFOV(angleDirection);
-	cv.textGroup(["θ : " + Math.floor(angleDirection.deg), `Position: (${cell.x}, ${cell.y})`, `${Math.round(1 / (fps.reduce((accumulator, value) => accumulator + value) / 10 / 1000))}`], 20, 20, {
-		style: "#000000",
-	});
-	cv3d.element.getContext("2d").drawImage(cv.element, 0, 0, 150, 150);
+	cv3d.textGroup(
+		["θ : " + Math.floor(angleDirection.deg), `Position: (${cell.x}, ${cell.y})`, `${Math.round(1 / (fps.reduce((accumulator, value) => accumulator + value) / 10 / 1000))}`],
+		cv3d.width - 150,
+		20,
+		{
+			style: "#FFFFFF",
+		}
+	);
+	ctx3d.drawImage(cv.element, 0, 0, 150, 150);
 	// renderer.render();
 
 	tLast = t;
@@ -139,5 +123,4 @@ const fps = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 cv3d.element.width = window.innerWidth;
 cv3d.element.height = window.innerHeight;
 const rayCount = cv3d.element.width;
-document.body.append(cv.element);
 requestAnimationFrame(loop);

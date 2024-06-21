@@ -282,7 +282,7 @@ export class Droite {
 export class Angle {
 	rad;
 	constructor(value = 0, rad = false) {
-		this.rad = rad ? value : Angle.rad(value);
+		this.rad = (rad ? value : Angle.rad(value)) % (Math.PI * 2);
 	}
 
 	static deg(rad) {

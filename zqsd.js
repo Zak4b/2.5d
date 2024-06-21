@@ -1,6 +1,6 @@
-import { Point, Angle, Vecteur, Raycaster } from "./class/geometry.js";
-import { CanvasInterface, CanvasRenderer } from "./class/canvas.js";
-import { fpsMeter } from "./class/fpsMeter.js";
+import { Point, Angle, Vecteur, Raycaster } from "./class/Geometry.js";
+import { CanvasInterface, CanvasRenderer } from "./class/Canvas.js";
+import { fpsMeter } from "./class/FpsMeter.js";
 window.oncontextmenu = (e) => e.preventDefault();
 const cSize = 64;
 
@@ -108,7 +108,6 @@ const moveBall = (t = 0) => {
 
 		ball.copy(next);
 	}
-	return v;
 };
 
 const wall = new Image();
@@ -119,10 +118,9 @@ const loop = (t = 0) => {
 	cv3d.clear();
 	cv3d.rect(0, 0, cv3d.width, cv3d.height / 2, { style: "#1b237a" });
 	cv3d.rect(0, cv3d.height / 2, cv3d.width, cv3d.height / 2, { style: "#555555" });
-	const v = moveBall(t - tLast);
+	moveBall(t - tLast);
 	const cell = ball.transpose(1 / cSize);
 	fps.push(t - tLast);
-	if (!v.isNull) angleDirection = v.angle;
 
 	drawLayout();
 	if (displayGrid) cv.grid(cSize);
@@ -132,7 +130,6 @@ const loop = (t = 0) => {
 		style: "#FFFFFF",
 	});
 	ctx3d.drawImage(cv.element, 0, 0, 150, 150);
-	// renderer.render();
 
 	tLast = t;
 	requestAnimationFrame(loop);

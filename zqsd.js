@@ -80,11 +80,33 @@ const moveBall = (t = 0) => {
 	const v = Vecteur.fromAngle(angleDirection).scal(d);
 
 	if (key["z"] || key["s"]) {
-		const next = key["s"] ? Point.translate(ball, Vecteur.scal(v, -1)) : Point.translate(ball, v);
+		const mov = key["z"] ? v : Vecteur.scal(v, -1);
+		const next = Point.translate(ball, mov);
 		const cell = next.transpose(1 / cSize);
-		if (cell.x >= 0 && cell.x < mapLayout[0].length && cell.y >= 0 && cell.y < mapLayout.length && mapLayout[cell.y][cell.x] == 0) {
-			ball.copy(next);
+		const offsetX = next.x % cSize;
+		const offsetY = next.y % cSize;
+
+		const minDistance = 10;
+		if (mov.x > 0) {
+			if (mapLayout[cell.y][cell.x + 1] !== 0 && offsetX > cSize - minDistance) {
+				next.x -= offsetX - (cSize - minDistance);
+			}
+		} else {
+			if (mapLayout[cell.y][cell.x - 1] !== 0 && offsetX < minDistance) {
+				next.x += minDistance - offsetX;
+			}
 		}
+		if (mov.y > 0) {
+			if (mapLayout[cell.y + 1]?.[cell.x] !== 0 && offsetY > cSize - minDistance) {
+				next.y -= offsetY - (cSize - minDistance);
+			}
+		} else {
+			if (mapLayout[cell.y - 1]?.[cell.x] !== 0 && offsetY < minDistance) {
+				next.y += minDistance - offsetY;
+			}
+		}
+
+		ball.copy(next);
 	}
 	return v;
 };

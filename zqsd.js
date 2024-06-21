@@ -34,13 +34,17 @@ const mapColors = { 0: "#DDDDDD", 1: "#222222" };
 const caster = new Raycaster(mapLayout, cSize);
 const fps = new fpsMeter();
 
-const cv = new CanvasInterface({ width: 1000, height: 1000 }); // { width: mapLayout[0].length, height: mapLayout.length }
+const cv = new CanvasInterface({ width: 1000, height: 1000 }); // { width: mapLayoudata.data[i * 4].length, height: mapLayout.length }
 const cv3d = new CanvasInterface(document.getElementById("zqsd"));
 const ctx3d = cv3d.element.getContext("2d");
-const key = [];
+const keyState = [];
+const keyMap = { up: "KeyW", left: "KeyA", down: "KeyS", right: "KeyD" };
+function key(string) {
+	return keyState[keyMap[string]];
+}
 let tLast = 0;
-document.addEventListener("keydown", (e) => (key[e.key.toLowerCase()] = true), false);
-document.addEventListener("keyup", (e) => (key[e.key.toLowerCase()] = false), false);
+document.addEventListener("keydown", (e) => (keyState[e.code] = true), false);
+document.addEventListener("keyup", (e) => (keyState[e.code] = false), false);
 
 const drawLayout = () => {
 	for (let i = 0; i < mapLayout.length; i++) {
@@ -75,12 +79,12 @@ const drawFOV = (angleDirection) => {
 const moveBall = (t = 0) => {
 	// v = d/t d = vxt
 	const d = ballSpeed * (t / 1000);
-	if (key["q"]) angleDirection = angleDirection.add((-180 * t) / 1000);
-	if (key["d"]) angleDirection = angleDirection.add((180 * t) / 1000);
+	if (key("left")) angleDirection = angleDirection.add((-180 * t) / 1000);
+	if (key("right")) angleDirection = angleDirection.add((180 * t) / 1000);
 	const v = Vecteur.fromAngle(angleDirection).scal(d);
 
-	if (key["z"] || key["s"]) {
-		const mov = key["z"] ? v : Vecteur.scal(v, -1);
+	if (key("up") || key("down")) {
+		const mov = key("up") ? v : Vecteur.scal(v, -1);
 		const next = Point.translate(ball, mov);
 		const cell = next.transpose(1 / cSize);
 		const offsetX = next.x % cSize;
@@ -110,7 +114,7 @@ const moveBall = (t = 0) => {
 	}
 };
 
-const wall = await CanvasInterface.loadImage("wall.png");
+const wall = await CanvasInterface.loadImage("media/wall.png");
 const loop = (t = 0) => {
 	cv.clear();
 	cv3d.clear();

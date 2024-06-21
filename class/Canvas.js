@@ -27,6 +27,25 @@ export class CanvasInterface {
 		return this.element.height;
 	}
 
+	/**
+	 * @param {string} imageURL
+	 * @returns {Promise{HTMLCanvasElement}}
+	 */
+	static async loadImage(imageURL) {
+		return new Promise((resolve, reject) => {
+			const img = new Image();
+			img.onerror = reject;
+			img.onload = () => {
+				const canvas = document.createElement("canvas");
+				canvas.width = img.width;
+				canvas.height = img.height;
+				canvas.getContext("2d").drawImage(img, 0, 0);
+				resolve(canvas);
+			};
+			img.src = imageURL;
+		});
+	}
+
 	options(options = {}) {
 		this.#ctx.fillStyle = options?.style ?? "#0095DD";
 		this.#ctx.strokeStyle = this.#ctx.fillStyle;

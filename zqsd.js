@@ -110,9 +110,7 @@ const moveBall = (t = 0) => {
 	}
 };
 
-const wall = new Image();
-wall.src = "wall.png";
-
+const wall = await CanvasInterface.loadImage("wall.png");
 const loop = (t = 0) => {
 	cv.clear();
 	cv3d.clear();

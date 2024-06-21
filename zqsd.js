@@ -1,6 +1,6 @@
-import { Point, Angle, Vecteur, Raycaster } from "./geometry.js";
-import { CanvasInterface, CanvasRenderer } from "./canvas.js";
-import { fpsMeter } from "./fpsMeter.js";
+import { Point, Angle, Vecteur, Raycaster } from "./class/geometry.js";
+import { CanvasInterface, CanvasRenderer } from "./class/canvas.js";
+import { fpsMeter } from "./class/fpsMeter.js";
 window.oncontextmenu = (e) => e.preventDefault();
 const cSize = 64;
 

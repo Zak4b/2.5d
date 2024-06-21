@@ -45,6 +45,23 @@ export class CanvasInterface {
 			img.src = imageURL;
 		});
 	}
+	/**
+	 * @param {string} hexcolor
+	 * @returns {{R:number, G:number, B:number}}
+	 */
+	static parseHexColor(hexcolor) {
+		const r = /#?([A-F0-9]{6})/i;
+		let R = 0,
+			G = 0,
+			B = 0;
+		if (r.test(hexcolor)) {
+			const match = r.exec(hexcolor)[1];
+			R = parseInt(match.slice(0, 2), 16);
+			G = parseInt(match.slice(2, 4), 16);
+			B = parseInt(match.slice(4, 6), 16);
+		}
+		return { R, G, B };
+	}
 
 	options(options = {}) {
 		this.#ctx.fillStyle = options?.style ?? "#0095DD";
@@ -55,6 +72,24 @@ export class CanvasInterface {
 
 	clear() {
 		this.#ctx.clearRect(0, 0, this.#element.width, this.#element.height);
+	}
+	/**
+	 * @param {HTMLCanvasElement} canvas
+	 * @param {string} hexcolor
+	 */
+	static chromaKey(canvas, hexcolor) {
+		const { R, G, B } = CanvasInterface.parseHexColor(hexcolor);
+		const canvasContext = canvas.getContext("2d");
+		const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+		for (let i = 0; i < imageData.width * imageData.height; i++) {
+			if (imageData.data[i * 4] == R && imageData.data[i * 4 + 1] == G && imageData.data[i * 4 + 2] == B) {
+				imageData.data[i * 4 + 3] = 0;
+			}
+		}
+		canvasContext.putImageData(imageData, 0, 0);
+	}
+	chromaKey(hexcolor) {
+		CanvasInterface.chromaKey(this.#element, hexcolor);
 	}
 	grid = (cSize, Xmax, Ymax) => {
 		const nX = Xmax ?? Math.floor(this.#element.width / cSize);

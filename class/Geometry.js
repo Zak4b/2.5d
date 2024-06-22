@@ -4,35 +4,70 @@ export class Point {
 	constructor(x = 0, y = 0) {
 		this.set(x, y);
 	}
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 */
 	set(x, y) {
 		this.x = x;
 		this.y = y;
 	}
-
+	/**
+	 * @param {Point} point
+	 * @returns {Point}
+	 */
 	static copy(point) {
 		return new Point(point.x, point.y);
 	}
+	/**
+	 * @param {Point} point
+	 * @returns {Point}
+	 */
 	copy(point) {
 		return this.set(point.x, point.y);
 	}
-
+	/**
+	 * @param {Point} p1
+	 * @param {Point} p2
+	 * @returns {number}
+	 */
 	static distance(p1, p2) {
 		return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
 	}
+	/**
+	 * @param {Point} point
+	 * @returns {number}
+	 */
 	distance(point) {
 		return Point.distance(this, point);
 	}
-
+	/**
+	 * @param {Point} point
+	 * @param {number} k
+	 * @returns {Point}
+	 */
 	static transpose(point, k) {
 		return new Point(Math.floor(point.x * k), Math.floor(point.y * k));
 	}
+	/**
+	 * @param {number} k
+	 * @returns {Point}
+	 */
 	transpose(k) {
 		return Point.transpose(this, k);
 	}
-
+	/**
+	 * @param {Point} point
+	 * @param {Vecteur} v
+	 * @returns {Point}
+	 */
 	static translate(point, v) {
 		return new Point(point.x + v.x, point.y + v.y);
 	}
+	/**
+	 * @param {Vecteur} v
+	 * @returns {Point}
+	 */
 	translate(v) {
 		this.copy(Point.translate(this, v));
 		return this;
@@ -50,6 +85,11 @@ export class Point {
 
 		return new Point(px, py);
 	}
+	/**
+	 * @param {Point} center
+	 * @param {Angle} angle radian
+	 * @returns {Point}
+	 */
 	translateCirc(center, angle) {
 		this.copy(Point.translateCirc(this, center, angle));
 		return this;
@@ -62,39 +102,68 @@ export class Vecteur {
 	constructor(x = 0, y = 0) {
 		this.set(x, y);
 	}
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 */
 	set(x, y) {
 		this.x = x;
 		this.y = y;
 	}
-
+	/**
+	 * @param {Vecteur} vecteur
+	 * @returns {Vecteur}
+	 */
 	static copy(vecteur) {
 		return new Vecteur(vecteur.x, vecteur.y);
 	}
+	/**
+	 * @param {Vecteur} vecteur
+	 * @returns {Vecteur}
+	 */
 	copy(vecteur) {
-		return this.set(vecteur.x, vecteur.y);
+		this.set(vecteur.x, vecteur.y);
+		return this;
 	}
-
+	/**
+	 * @param {Point} p1
+	 * @param {Point} p2
+	 * @returns {Point}
+	 */
 	static fromPoints(p1, p2) {
 		return new Vecteur(p2.x - p1.x, p2.y - p1.y);
 	}
+	/**
+	 * @param {Angle} angle
+	 * @returns {Vecteur}
+	 */
 	static fromAngle(angle) {
 		return new Vecteur(Math.cos(angle.rad), Math.sin(angle.rad));
 	}
-
+	/**
+	 * @param {Vecteur} v
+	 * @returns {number}
+	 */
 	static norme(v) {
 		return Math.sqrt(v.x ** 2 + v.y ** 2);
 	}
 	get norme() {
 		return Vecteur.norme(this);
 	}
-
+	/**
+	 * @param {Vecteur} v
+	 * @returns {boolean}
+	 */
 	static isNull(v) {
 		return v.x == 0 && v.y == 0;
 	}
 	get isNull() {
 		return Vecteur.isNull(this);
 	}
-
+	/**
+	 * @param {Vecteur} v
+	 * @returns {Vecteur}
+	 */
 	static normalize(v) {
 		const n = Vecteur.norme(v);
 		return n ? new Vecteur(v.x / n, v.y / n) : v;
@@ -103,25 +172,50 @@ export class Vecteur {
 		this.copy(Vecteur.normalize(this));
 		return this;
 	}
+	/**
+	 * @param {Vecteur} v1
+	 * @param {Vecteur} v2
+	 * @returns {Vecteur}
+	 */
 	static add(v1, v2) {
 		return new Vecteur(v1.x + v2.x, v1.y + v2.y);
 	}
+	/**
+	 * @param {Vecteur} v
+	 * @returns {Vecteur}
+	 */
 	add(v) {
 		this.copy(Vecteur.add(this, v));
 		return this;
 	}
-
+	/**
+	 * @param {Vecteur} v
+	 * @param {number} k
+	 * @returns {Vecteur}
+	 */
 	static scal(v, k) {
 		return new Vecteur(v.x * k, v.y * k);
 	}
+	/**
+	 * @param {number} k
+	 * @returns {Vecteur}
+	 */
 	scal(k) {
 		this.copy(Vecteur.scal(this, k));
 		return this;
 	}
-
+	/**
+	 * @param {Vecteur} v1
+	 * @param {Vecteur} v2
+	 * @returns {number}
+	 */
 	static prodscal(v1, v2) {
 		return v1.x * v2.x + v1.y * v2.y;
 	}
+	/**
+	 * @param {Vecteur} v
+	 * @returns {number}
+	 */
 	prodscal(v) {
 		return Vecteur.prodscal(this, v);
 	}
@@ -187,96 +281,6 @@ export class Droite {
 	get string() {
 		return `${this.#m}x + ${this.#b}`;
 	}
-
-	intersect(cSize, xMin, yMin, xMax, yMax, collide = () => false) {
-		const distance = 15;
-		// Direction x et y
-		const dx = this.v.x > 0 ? 1 : -1;
-		const dy = this.v.y > 0 ? 1 : -1;
-		let origin = Point.copy(this.p1);
-
-		//console.groupCollapsed();
-		//console.log("D ", this.v.angle.deg);
-		//console.log(this);
-		//console.log("dx", dx, "dy", dy);
-		for (let i = 1; i < distance; i++) {
-			const relativeOrigin = origin.transpose(1 / cSize);
-			// Prochains x et y intersect
-			const x0 = cSize * (relativeOrigin.x + (dx + 1) / 2);
-			const y0 = cSize * (relativeOrigin.y + (dy + 1) / 2);
-			// Coords intersect
-			const interX = new Point(x0, this.f(x0));
-			const interY = new Point(this.g(y0), y0);
-			const pts = [];
-			if (this.fDefined) {
-				// Collide interX
-				const relativeInterXi = interX.transpose(1 / cSize);
-				relativeInterXi.x -= dx < 0 ? 1 : 0;
-				pts.push({ type: "interX", point: interX, relativePoint: relativeInterXi });
-			}
-			if (this.gDefined) {
-				// Collide interY
-				const relativeInterYi = interY.transpose(1 / cSize);
-				relativeInterYi.y -= dy < 0 ? 1 : 0;
-				pts.push({ type: "interY", point: interY, relativePoint: relativeInterYi });
-			}
-
-			if (this.fDefined && this.gDefined) {
-				const vv = Vecteur.fromPoints(interX, interY);
-				const kx = Math.floor(Math.abs(vv.x) / cSize); // Nombre d'intersect x entre p1 et p2
-				const ky = Math.floor(Math.abs(vv.y) / cSize); // Nombre d'intersect y entre p1 et p2
-				for (let j = 1; j <= kx; j++) {
-					const xi = x0 + j * cSize * dx;
-					console.log(xi);
-					const interXi = new Point(xi, this.f(xi));
-					const relativeInterXi = interXi.transpose(1 / cSize);
-					relativeInterXi.x -= dx < 0 ? 1 : 0;
-					pts.push({ type: "interX", point: interXi, relativePoint: relativeInterXi });
-				}
-				for (let j = 1; j <= ky; j++) {
-					const yi = y0 + j * cSize * dy;
-					const interYi = new Point(this.g(yi), yi);
-					const relativeInterYi = interYi.transpose(1 / cSize);
-					relativeInterYi.y -= dy < 0 ? 1 : 0;
-					pts.push({ type: "interY", point: interYi, relativePoint: relativeInterYi });
-				}
-			}
-			const result = pts
-				.map((e) => {
-					e.distance = e.point.distance(origin);
-					return e;
-				})
-				.sort((a, b) => a.distance - b.distance);
-			//console.log("O= ", origin);
-			//console.log("S= ", result);
-			for (const elem of result) {
-				if (elem.point.x <= xMin || elem.point.y <= yMin || elem.point.x >= xMax || elem.point.y >= yMax || collide(elem)) {
-					//console.log(elem);
-					//console.groupEnd();
-					if (i > 5) console.warn(i);
-					return elem.point;
-				}
-			}
-			/*
-			if (!this.fDefined) {
-				result = result.filter((elem) => {
-					elem.type != "interX";
-				});
-			}
-			if (!this.gDefined) {
-				result = result.filter((elem) => {
-					elem.type != "interY";
-				});
-			}
-			*/
-			(this.v.angle.deg == -90 || this.v.angle.deg == 180) && console.log(result);
-			origin = Point.copy(result[result.length - 1].point);
-		}
-		//console.log("Pas de soluce");
-		//console.groupEnd();
-		console.error(distance);
-		return;
-	}
 }
 
 export class Angle {
@@ -285,25 +289,44 @@ export class Angle {
 		this.rad = (rad ? value : Angle.rad(value)) % (Math.PI * 2);
 		if (this.rad < 0) this.rad += Math.PI * 2;
 	}
-
+	/**
+	 * @param {number} rad
+	 * @returns {number}
+	 */
 	static deg(rad) {
 		return (rad * 180) / Math.PI;
 	}
+	/**
+	 * @returns {number}
+	 */
 	get deg() {
 		return Angle.deg(this.rad);
 	}
-
+	/**
+	 * @param {number} deg
+	 * @returns {number}
+	 */
 	static rad(deg) {
 		return (deg * Math.PI) / 180;
 	}
+	/**
+	 * @returns {number}
+	 */
 	get rad() {
 		return this.rad;
 	}
-
+	/**
+	 * @param {number} deg
+	 * @returns {Angle}
+	 */
 	add(deg = 0) {
 		return new Angle(this.deg + deg);
 	}
-
+	/**
+	 * @param {Vecteur} v1
+	 * @param {Vecteur} v2
+	 * @returns
+	 */
 	static calc(v1, v2 = new Vecteur(1, 0)) {
 		return new Angle(Math.acos(Vecteur.prodscal(v1, v2) / (Vecteur.norme(v1) * Vecteur.norme(v2))), true);
 	}
@@ -315,6 +338,12 @@ export class Raycaster {
 		this.cellSize = cSize;
 	}
 
+	/**
+	 *
+	 * @param {Point} start
+	 * @param {number} angle radian
+	 * @returns {{intersect:Point, collide:Point|null}}
+	 */
 	castRay(start, angle) {
 		const tanAngle = Math.tan(angle);
 
@@ -352,7 +381,11 @@ export class Raycaster {
 		const collide = this.isWithinBounds(currentCellX, currentCellY) ? new Point(currentCellX, currentCellY) : null;
 		return { intersect, collide };
 	}
-
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 * @returns {boolean}
+	 */
 	isWithinBounds(x, y) {
 		return y >= 0 && y < this.mapLayout.length && x >= 0 && x < this.mapLayout[0].length;
 	}

@@ -283,6 +283,7 @@ export class Angle {
 	rad;
 	constructor(value = 0, rad = false) {
 		this.rad = (rad ? value : Angle.rad(value)) % (Math.PI * 2);
+		if (this.rad < 0) this.rad += Math.PI * 2;
 	}
 
 	static deg(rad) {

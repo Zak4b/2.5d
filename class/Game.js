@@ -225,12 +225,11 @@ export class Game3D {
 	drawWalls() {
 		const rayCount = this.#windowWidth;
 		const ang = new Angle(this.player.fov.rad / (rayCount + -1), true);
-		const coef = this.#windowWidth / (2 * Math.tan(this.player.fov.rad / 2));
 		for (let i = 0; i < rayCount; i++) {
 			const rayAngle = this.player.facing.rad - this.player.fov.rad / 2 + ang.rad * i;
 			const { intersect, collide } = this.raycaster.castRay(this.player.pos, rayAngle);
 			const distance = this.player.pos.distance(intersect) * Math.cos(rayAngle - this.player.facing.rad);
-			const segmentSize = (this.#cellSize / distance) * coef;
+			const segmentSize = this.#windowHeight / (distance / this.#cellSize);
 			collide ? this.map.layout[collide.y][collide.x] : null;
 
 			const sx = Math.floor((((intersect.x % this.#cellSize) + (intersect.y % this.#cellSize)) * this.wallTexture.width) / this.#cellSize);

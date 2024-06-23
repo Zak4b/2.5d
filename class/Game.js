@@ -67,6 +67,23 @@ export class GameMap {
 			throw new Error("Invalid map");
 		}
 	}
+	parse() {
+		const parseMap = new Map();
+		for (let y = 0; y < this.#dimY; y++) {
+			for (let x = 0; x < this.#dimX; x++) {
+				const value = this.layout[y][x];
+				if (value != 0 && value != 1) {
+					if (parseMap.has(value)) {
+						parseMap.get(value).push([x, y]);
+					} else {
+						parseMap.set(value, [[x, y]]);
+					}
+				}
+			}
+		}
+		return parseMap;
+	}
+
 	drawRect(x, y, options) {
 		this.canvas.rect(x * this.#cellSize, y * this.#cellSize, this.#cellSize, this.#cellSize, options);
 	}

@@ -118,7 +118,7 @@ export class Game3D {
 	windowContext;
 	#windowWidth;
 	#windowHeight;
-	wallTexture = new Image();
+	wallTexture;
 
 	player;
 	#transposeCoef;
@@ -237,6 +237,7 @@ export class Game3D {
 		this.window.rect(0, this.window.height / 2, this.window.width, this.window.height / 2, { style: "#555555" });
 	}
 	drawWalls() {
+		if (!this.wallTexture) return;
 		const rayCount = this.#windowWidth;
 		const ang = new Angle(this.player.fov.rad / (rayCount + -1), true);
 		const coef = this.#windowWidth / (2 * Math.tan(this.player.fov.rad / 2));

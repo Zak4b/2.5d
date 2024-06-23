@@ -148,9 +148,8 @@ export class Game3D {
 		this.player.speed *= this.#cellSize / 100;
 		this.#transposeCoef = 1 / this.#cellSize;
 		this.fps = new fpsMeter();
-		CanvasInterface.loadImage("media/wall.png").then((image) => {
-			this.wallTexture = image;
-		});
+
+		this.loadImages();
 
 		this.raycaster = new Raycaster(this.map.layout, this.#cellSize);
 		document.addEventListener("keydown", (e) => (this.#keyState[e.code] = true), { passive: true });
@@ -166,6 +165,21 @@ export class Game3D {
 		this.#windowHeight = window.innerHeight;
 		this.window.element.width = this.#windowWidth;
 		this.window.element.height = this.#windowHeight;
+		this.#distanceToProjectionPlane = this.#windowWidth / (2 * Math.tan(this.player.fov.rad / 2));
+	}
+
+	loadImages() {
+		CanvasInterface.loadImage("media/wall.png").then((image) => {
+			this.wallTexture = image;
+		});
+		CanvasInterface.loadImage("media/treasure.png").then((image) => {
+			CanvasInterface.chromaKey(image, "00FFFF");
+			this.treasure = image;
+		});
+		CanvasInterface.loadImage("media/shotgun-1.png").then((image) => {
+			CanvasInterface.chromaKey(image, "00FFFF");
+			this.weap = image;
+		});
 	}
 
 	key(string) {

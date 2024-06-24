@@ -68,16 +68,13 @@ export class GameMap {
 		}
 	}
 	parse() {
-		const parseMap = new Map();
+		const parseMap = [];
 		for (let y = 0; y < this.#dimY; y++) {
 			for (let x = 0; x < this.#dimX; x++) {
 				const value = this.layout[y][x];
 				if (value != 0 && value != 1) {
-					if (parseMap.has(value)) {
-						parseMap.get(value).push([x, y]);
-					} else {
-						parseMap.set(value, [[x, y]]);
-					}
+					if (!parseMap[value]) parseMap[value] = [];
+					parseMap[value].push([x, y]);
 				}
 			}
 		}
@@ -114,6 +111,7 @@ export class GameMap {
 export class Game3D {
 	#tLast = 0;
 
+	/** @type {CanvasInterface} */
 	window;
 	windowContext;
 	#windowWidth;
@@ -123,11 +121,13 @@ export class Game3D {
 
 	player;
 	#transposeCoef;
+	/** @type {Point[]} */
 	#entities = [];
 	map;
 	#cellSize = 64;
 	raycaster;
 
+	/** @type {boolean[]} */
 	#keyState = [];
 	#keyMap = { up: "KeyW", left: "KeyA", down: "KeyS", right: "KeyD" };
 	fps;
@@ -233,6 +233,18 @@ export class Game3D {
 		this.player.pos.copy(next);
 	}
 
+	segmentSize(distance) {
+		return (this.#cellSize / distance) * this.#distanceToProjectionPlane;
+	}
+	/**
+	 * @param {Point} point
+	 * @param {number} rayAngle radian
+	 * @returns
+	 */
+	correctedDistance(point, rayAngle) {
+		return this.player.pos.distance(point) * Math.cos(rayAngle - this.player.facing.rad);
+	}
+
 	drawBackground() {
 		this.window.rect(0, 0, this.window.width, this.window.height / 2, { style: "#1b237a" });
 		this.window.rect(0, this.window.height / 2, this.window.width, this.window.height / 2, { style: "#555555" });
@@ -244,8 +256,8 @@ export class Game3D {
 		for (let i = 0; i < rayCount; i++) {
 			const rayAngle = this.player.facing.rad - this.player.fov.rad / 2 + ang.rad * i;
 			const { intersect, collide } = this.raycaster.castRay(this.player.pos, rayAngle);
-			const distance = this.player.pos.distance(intersect) * Math.cos(rayAngle - this.player.facing.rad);
-			const segmentSize = (this.#cellSize / distance) * this.#distanceToProjectionPlane;
+			const distance = this.correctedDistance(intersect, rayAngle);
+			const segmentSize = this.segmentSize(distance);
 			collide ? this.map.layout[collide.y][collide.x] : null;
 
 			const sx = Math.floor((((intersect.x % this.#cellSize) + (intersect.y % this.#cellSize)) * this.wallTexture.width) / this.#cellSize);

@@ -67,6 +67,9 @@ export class GameMap {
 			throw new Error("Invalid map");
 		}
 	}
+	get(x, y) {
+		return this.layout[y]?.[x] ?? 1;
+	}
 	parse() {
 		const parseMap = [];
 		for (let y = 0; y < this.#dimY; y++) {
@@ -216,20 +219,20 @@ export class Game3D {
 
 		const minDistance = 10;
 		if (mov.x > 0) {
-			if (mapLayout[cell.y][cell.x + 1] !== 0 && offsetX > cSize - minDistance) {
+			if (this.map.get(cell.x + 1, cell.y) !== 0 && offsetX > cSize - minDistance) {
 				next.x -= offsetX - (cSize - minDistance);
 			}
 		} else {
-			if (mapLayout[cell.y][cell.x - 1] !== 0 && offsetX < minDistance) {
+			if (this.map.get(cell.x - 1, cell.y) !== 0 && offsetX < minDistance) {
 				next.x += minDistance - offsetX;
 			}
 		}
 		if (mov.y > 0) {
-			if (mapLayout[cell.y + 1]?.[cell.x] !== 0 && offsetY > cSize - minDistance) {
+			if (this.map.get(cell.x, cell.y + 1) !== 0 && offsetY > cSize - minDistance) {
 				next.y -= offsetY - (cSize - minDistance);
 			}
 		} else {
-			if (mapLayout[cell.y - 1]?.[cell.x] !== 0 && offsetY < minDistance) {
+			if (this.map.get(cell.x, cell.y - 1) !== 0 && offsetY < minDistance) {
 				next.y += minDistance - offsetY;
 			}
 		}
@@ -262,7 +265,7 @@ export class Game3D {
 			const { intersect, collide } = this.raycaster.castRay(this.player.pos, rayAngle);
 			const distance = this.correctedDistance(intersect, rayAngle);
 			const segmentSize = this.segmentSize(distance);
-			collide ? this.map.layout[collide.y][collide.x] : null;
+			collide ? this.map.get(collide.x, collide.y) : null;
 
 			const sx = Math.floor((((intersect.x % this.#cellSize) + (intersect.y % this.#cellSize)) * this.wallTexture.width) / this.#cellSize);
 			this.windowContext.drawImage(this.wallTexture, sx, 0, 1, this.wallTexture.height, i, (this.#windowHeight - segmentSize) / 2, 1, segmentSize);

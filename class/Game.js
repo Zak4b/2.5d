@@ -219,20 +219,20 @@ export class Game3D {
 
 		const minDistance = 10;
 		if (mov.x > 0) {
-			if (this.map.get(cell.x + 1, cell.y) !== 0 && offsetX > cSize - minDistance) {
+			if (this.map.get(cell.x + 1, cell.y) === 1 && offsetX > cSize - minDistance) {
 				next.x -= offsetX - (cSize - minDistance);
 			}
 		} else {
-			if (this.map.get(cell.x - 1, cell.y) !== 0 && offsetX < minDistance) {
+			if (this.map.get(cell.x - 1, cell.y) === 1 && offsetX < minDistance) {
 				next.x += minDistance - offsetX;
 			}
 		}
 		if (mov.y > 0) {
-			if (this.map.get(cell.x, cell.y + 1) !== 0 && offsetY > cSize - minDistance) {
+			if (this.map.get(cell.x, cell.y + 1) === 1 && offsetY > cSize - minDistance) {
 				next.y -= offsetY - (cSize - minDistance);
 			}
 		} else {
-			if (this.map.get(cell.x, cell.y - 1) !== 0 && offsetY < minDistance) {
+			if (this.map.get(cell.x, cell.y - 1) === 1 && offsetY < minDistance) {
 				next.y += minDistance - offsetY;
 			}
 		}

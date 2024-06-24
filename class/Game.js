@@ -143,6 +143,10 @@ export class Game3D {
 
 		const map = params.map;
 		this.map = new GameMap(map.layout);
+		const parseMap = this.map.parse();
+		for (const entityType in parseMap) {
+			parseMap[entityType].forEach((e) => this.#entities.push(new Point((e[0] + 0.5) * this.#cellSize, (e[1] + 0.5) * this.#cellSize)));
+		}
 		const player = params.player;
 		this.player = new Player(player?.x, player?.y, player?.facing);
 		this.player.speed *= this.#cellSize / 100;
@@ -264,6 +268,25 @@ export class Game3D {
 			this.windowContext.drawImage(this.wallTexture, sx, 0, 1, this.wallTexture.height, i, (this.#windowHeight - segmentSize) / 2, 1, segmentSize);
 		}
 	}
+	drawSprites() {
+		const step = new Angle(this.player.fov.rad / (this.#windowWidth + -1), true).rad;
+		const FOV_LEFT = this.player.facing.rad - this.player.fov.rad / 2;
+		const FOV_RIGHT = FOV_LEFT + this.player.fov.rad;
+		for (const entity of this.#entities) {
+			const angleToEntity = Vecteur.fromPoints(this.player.pos, entity).angle.rad;
+			const distanceToEntity = this.correctedDistance(entity, angleToEntity);
+			const segmentSize = this.segmentSize(distanceToEntity);
+			const floorLevel = (this.#windowHeight + segmentSize) / 2;
+
+			if (FOV_LEFT < angleToEntity && angleToEntity < FOV_RIGHT) {
+				const { intersect } = this.raycaster.castRay(this.player.pos, angleToEntity);
+				if (this.player.pos.distance(intersect) > distanceToEntity) {
+					const x = Math.floor((angleToEntity - FOV_LEFT) / step);
+					this.windowContext.drawImage(this.treasure, x - segmentSize / 3 / 2, floorLevel - segmentSize / 3, segmentSize / 3, (segmentSize / 3 / this.treasure.width) * this.treasure.height);
+				}
+			}
+		}
+	}
 	drawMiniMap() {
 		this.windowContext.drawImage(this.map.draw(Point.transpose(this.player.pos, this.#transposeCoef)), 0, 0);
 	}
@@ -276,6 +299,7 @@ export class Game3D {
 
 		this.drawBackground();
 		this.drawWalls();
+		this.drawSprites();
 		this.drawMiniMap();
 
 		const cell = this.player.pos.transpose(this.#transposeCoef);

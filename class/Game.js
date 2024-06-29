@@ -2,6 +2,59 @@ import { Angle, Point, Vecteur, Raycaster } from "./Geometry.js";
 import { CanvasInterface } from "./Canvas.js";
 import { fpsMeter } from "./FpsMeter.js";
 
+class AnimatedSprite {
+	#ready = false;
+	#startedAt = 0;
+	#interval;
+	#duration;
+	#framesCount;
+	#getFunction;
+	#sprites = [];
+	constructor(urls = [], duration, boomerang = true) {
+		this.#framesCount = urls.length;
+		if (this.#framesCount < 2) throw new Error();
+
+		this.#duration = duration;
+		if (boomerang) {
+			this.#getFunction = this.#getBoomerang;
+			this.#interval = duration / ((this.#framesCount - 1) * 2);
+		} else {
+			this.#getFunction = this.#getLoop;
+			this.#interval = duration / this.#framesCount;
+		}
+		const promises = [];
+		for (let i = 0; i < this.#framesCount; i++) {
+			const p = CanvasInterface.loadImage(urls[i]);
+			p.then((image) => {
+				CanvasInterface.chromaKey(image, "#00FFFF");
+				this.#sprites[i] = image;
+			});
+			promises.push(p);
+		}
+		Promise.allSettled(promises).then(() => (this.#ready = true));
+	}
+	get ready() {
+		return this.#ready;
+	}
+
+	#getBoomerang(t) {
+		let i = Math.floor((t % this.#duration) / this.#interval);
+		if (i >= this.#framesCount) i = (this.#framesCount - 1) * 2 - i;
+		return i;
+	}
+	#getLoop(t) {
+		return Math.floor((t % (this.#interval * this.#framesCount)) / this.#interval);
+	}
+	get() {
+		const t = performance.now() - this.#startedAt;
+		const index = t <= this.#duration ? this.#getFunction(t) : 0;
+		return this.#sprites[index];
+	}
+	triggerAnimation() {
+		this.#startedAt = performance.now();
+	}
+}
+
 export class Player {
 	#pos;
 	#facingDirection;
@@ -184,10 +237,8 @@ export class Game3D {
 			CanvasInterface.chromaKey(image, "00FFFF");
 			this.treasure = image;
 		});
-		CanvasInterface.loadImage("media/shotgun-1.png").then((image) => {
-			CanvasInterface.chromaKey(image, "00FFFF");
-			this.weap = image;
-		});
+		this.eee = new AnimatedSprite(["media/shotgun-1.png", "media/shotgun-2.png", "media/shotgun-3.png", "media/shotgun-4.png"], 800, true);
+		document.onclick = () => this.eee.triggerAnimation();
 	}
 
 	key(string) {
@@ -272,6 +323,7 @@ export class Game3D {
 		}
 	}
 	drawSprites() {
+		if (!this.treasure) return;
 		const step = new Angle(this.player.fov.rad / (this.#windowWidth + -1), true).rad;
 		const FOV_LEFT = this.player.facing.rad - this.player.fov.rad / 2;
 		const FOV_RIGHT = FOV_LEFT + this.player.fov.rad;
@@ -304,6 +356,12 @@ export class Game3D {
 		this.drawWalls();
 		this.drawSprites();
 		this.drawMiniMap();
+		if (this.eee.ready) {
+			const sp = this.eee.get();
+			const w = sp.width * 3;
+			const h = sp.height * 3;
+			this.windowContext.drawImage(sp, (this.window.width - w) / 2, this.window.height - h + (this.key("up") ? Math.cos(Angle.rad(t * 0.5)) + 1 : 0) * 15, w, h);
+		}
 
 		const cell = this.player.pos.transpose(this.#transposeCoef);
 		this.fps.push(time);

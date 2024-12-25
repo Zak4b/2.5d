@@ -1,128 +1,126 @@
-# 2.5d
+# 2.5D
 
-Jeu avec simulation de 3d utilisant la techique de raycasting.
-
-## Table des Matières
+3D Game using raycasting.
 
 -   [Raycasting](#raycasting)
-    -   [Principe](#principe)
-    -   [Recherche d'intersection](#recherche-dintersections)
-    -   [Taille des segments](#taille-des-segments)
-    -   [Texture des Murs](#texture-des-murs)
+    -   [Principle](#principle)
+    -   [Intersection Search](#intersection-search)
+    -   [Segment Size](#segment-size)
+    -   [Wall Texturing](#wall-texturing)
 -   [Sprites](#sprites)
-    -   Animations
+    -   [Animations](#animations)
 
 ## Raycasting
 
 > [!WARNING]
-> Cette partie se base sur les informations d'un [article de permadi.com](https://www.permadi.com/tutorial/raycast/rayc7.html).
+> This section is based on information from an [article on permadi.com](https://www.permadi.com/tutorial/raycast/rayc7.html).
 
-### Principe
+### Principle
 
-Le raycasting est une technique visant à rendre un espace en 3 dimensions sur un plan en 2 dimensions en mesurant la distance entre l'observateur de la scène et les murs.
+Raycasting is a technique used to render a 3D space on a 2D plane by measuring the distance between the observer and the walls.
 
 ![render-segment](./render-segment.png)
 
-Pour ce faire, on tire des rayons (1 rayon par colonne de pixels), et on affiche à l'écran un segment dont la taille dépend de la distance jusqu'au mur.
+To achieve this, rays are cast (one ray per column of pixels of the screen), and a segment is drawn on the screen whose size depends on the distance to the wall.
 
 ![ray](./ray.png)
 
 ![collide](./collide.png)
 
-### Recherche d'intersections
+### Intersection Search
 
-Le joueur $P$ est placé aux coordonnées $(Px,Py)$ sur un plan représenté par un tableau à 2 dimensions. Chaque case est de dimension 64x64.
+The player $P$ is located at coordinates $(Px, Py)$ on a plane represented by a 2D array. Each cell has dimensions of 64x64.
 
 ```javascript
 const mapLayout = [
-	[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-	[1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-	[1, 0, 0, 1, 1, 1, 1, 1, 0, 1],
-	[1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
-	[1, 0, 0, 0, 1, 0, 0, 1, 0, 1],
-	[1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-	[1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-	[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 1, 1, 1, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+    [1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ];
-// 0 pour du vide, 1 pour un mur
+// 0 for empty space, 1 for a wall
 ```
 
-La direction dans laquelle il regarde forme l'angle $\alpha$ avec l'axe horizontal $X$.
+The direction the player is facing forms an angle $\alpha$ with the horizontal $X$ axis.
 
-On tire un ensemble de rayons en cône depuis $𝑃$ dans son champ de vision.  
-L'objectif est de trouver le point d'intersection entre chaque droite d'origine $𝑃$ et le mur le plus proche. Cette intersection peut se faire à la limite de chaque case, horizontalement ou verticalement.
+A set of rays is cast in a cone from $P$ within the field of view. The goal is to find the point of intersection between each ray and the nearest wall. Intersections may occur at the edges of each cell, either horizontally or vertically.
 
----
+#### Horizontal Intersections
 
-Pour une intersection horizontale, on cherche $Xa = 64 \div \tan(\alpha)$, la distance qui sépare chaque intersection horizontale l'une de l'autre.
+For horizontal intersections, we compute $Xa = 64 \div \tan(\alpha)$, the distance separating each horizontal intersection.
 
-Soit $A(Ax,Ay)$, la première intersection horizontale :
+Let $A(Ax, Ay)$ be the first horizontal intersection:
 
-|       |                                    |                               |
-| ----- | ---------------------------------- | ----------------------------- |
-| $Ay:$ | $\lceil Py\div64 \rceil\times64$   | si $(0 \leq \alpha \leq \pi)$ |
-|       | $\lfloor Py\div64 \rfloor\times64$ | sinon                         |
+|       |                                      |                              |
+|-------|--------------------------------------|------------------------------|
+| $Ay:$ | $\lceil Py \div 64 \rceil \times 64$ | if $(0 \leq \alpha \leq \pi)$ |
+|       | $\lfloor Py \div 64 \rfloor \times 64$ | otherwise                    |
 
-$Ax = Px (Ay-Py)\div\tan(\alpha)$ |
+$Ax = Px + (Ay - Py) \div \tan(\alpha)$
 
-Les intersections suivantes sont définies par :
+Subsequent intersections are defined as:
 
--   $x_i = Ax+(Xa\times i)$
--   $y_i = Ay+(64\times i)$
+-   $x_i = Ax + (Xa \times i)$
+-   $y_i = Ay + (64 \times i)$
 
-[fig15]()
+#### Vertical Intersections
 
-Même procédé pour la verticale : $Ya = 64 \times \tan(\alpha)$
+For vertical intersections, we compute $Ya = 64 \times \tan(\alpha)$.
 
-Soit $B(Bx,By)$, la première intersection verticale:
+Let $B(Bx, By)$ be the first vertical intersection:
 
-|       |                                    |                                                                       |
-| ----- | ---------------------------------- | --------------------------------------------------------------------- |
-| $Bx:$ | $\lceil Px\div64 \rceil\times64$   | si $\Large(\frac{\pi}{2}$ $ \leq \alpha \leq$ $\Large\frac{3\pi}{2})$ |
-|       | $\lfloor Px\div64 \rfloor\times64$ | sinon                                                                 |
+|       |                                      |                                                                        |
+|-------|--------------------------------------|------------------------------------------------------------------------|
+| $Bx:$ | $\lceil Px \div 64 \rceil \times 64$ | if $\Large(\frac{\pi}{2}$ $\leq \alpha \leq$ $\Large\frac{3\pi}{2})$ |
+|       | $\lfloor Px \div 64 \rfloor \times 64$ | otherwise                                                              |
 
-$By = Py + (Bx-Px)\times\tan(\alpha)$ |
+$By = Py + (Bx - Px) \times \tan(\alpha)$
 
-Les intersections suivantes sont définies par :
+Subsequent intersections are defined as:
 
--   $x_i = Bx+(64\times i)$
--   $y_i = By+(Ya\times i)$
+-   $x_i = Bx + (64 \times i)$
+-   $y_i = By + (Ya \times i)$
 
-[fig16]
-
-Reste à trouver un mur en parcourant un à un les points d'intersection pour enfin obtenir une distance et tracer le segment correspondant.
+Once the points of intersection are calculated, the nearest wall can be identified, and its distance is used to render the corresponding segment.
 
 ---
 
-### Taille des segments
+### Segment Size
 
-Pour calculer la taille du segment, on peut diviser la hauteur du mur (ici 64 pour coller aux dimensions des cases) par la distance.
+To calculate the segment size, divide the wall height (64 to match the cell dimensions) by the distance.
 
-**Taille du segment** = $64 \div distance$
+**Segment Size** = $64 \div \text{distance}$
 
-Problème, si on utilise simplement la distance entre l'intersection $I$ et le joueur $P$, on obtient le résultat suivant :
+#### Correcting Distances
+
+Using the raw distance between the intersection $I$ and the player $P$ results in a fisheye distortion:
 
 ![fisheye](./fisheye.png)
 
-#### Correction des distances
-
-Cette déformation est due au fait que les rayons sont tirés en arc de cercle.  
-Sur l'image ci-dessous, la distance $Pi$ est plus importante que la distance $Pj$. Pourtant, puisqu'ils sont sur le même plan, ces points devraient être considérés à la même distance.
+This distortion occurs because the rays are cast in a circular arc. For example, the distance $Pi$ is longer than $Pj$, even though they are on the same plane and should appear at the same distance.
 
 ![correction-distance-1](./correction-distance-1.png)
 
-On cherche alors à "corriger" la distance par rapport à un plan. Dans notre cas, la distance $Pi$ doit être égale à $Pj$, donc **distance corrigée** = $Pj$.
+To "correct" the distance, we adjust it relative to the field of view plane. The corrected distance ensures $Pi = Pj$. The correction formula is:
 
-On défini $\theta$, l'angle formé par $\widehat{iPj}$ pour se placer dans le référentiel du champ de vision :  
-$\cos(\theta)=$ **distance corrigée** $\div$ **distance**  
-**distance corrigée** $=$ **distance** $\times \cos(\theta)$
+**Corrected Distance** = **distance** $\times \cos(\theta)$
+
+Where $\theta$ is the angle between the ray and the player's direction:
 
 ![correction-distance-2](./correction-distance-2.png)
 
-Ainsi, **Taille du segment** = $64 ÷ ($ **distance** $\times \cos(\theta))$
+Thus, the corrected segment size is:
+
+**Segment Size** = $64 \div (\text{distance} \times \cos(\theta))$
 
 ![render-animation](./render-animation.gif)
 
-### Texture des Murs
+### Wall Texturing
 
 ## Sprites
+
+### Animations

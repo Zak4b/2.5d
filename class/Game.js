@@ -312,11 +312,11 @@ export class Game3D {
 		const rayCount = this.#windowWidth;
 		const ang = new Angle(this.player.fov.rad / (rayCount + -1), true);
 		for (let i = 0; i < rayCount; i++) {
-			const rayAngle = this.player.facing.rad - this.player.fov.rad / 2 + ang.rad * i;
+			const camera_x = (2.0 * i) / (this.#windowWidth - 1) - 1.0;
+			const rayAngle = this.player.facing.rad + Math.atan(camera_x * Math.tan(this.player.fov.rad / 2));
 			const { intersect, collide } = this.raycaster.castRay(this.player.pos, rayAngle);
 			const distance = this.correctedDistance(intersect, rayAngle);
 			const segmentSize = this.segmentSize(distance);
-			collide ? this.map.get(collide.x, collide.y) : null;
 
 			const sx = Math.floor((((intersect.x % this.#cellSize) + (intersect.y % this.#cellSize)) * this.wallTexture.width) / this.#cellSize);
 			this.windowContext.drawImage(this.wallTexture, sx, 0, 1, this.wallTexture.height, i, (this.#windowHeight - segmentSize) / 2, 1, segmentSize);
